@@ -30,8 +30,13 @@ class _GameListPageState extends State<GameListPage> {
       var fetchedGames = await httpService.getAllGames();
       setState(() {
         allGames = fetchedGames as List<Map<String, dynamic>>;
-        games = allGames; // Initially display all games
-        _showCompletedGames = false;
+        if (_showCompletedGames) {
+          // If showing completed games, filter them
+          games = allGames.where((game) => game['status'] == 1 || game['status'] == 2).toList();
+        } else {
+          // Otherwise, show only ongoing games
+          games = allGames.where((game) => game['status'] == 3).toList();
+        }
       });
     } catch (e) {
       print(e);
@@ -44,12 +49,10 @@ class _GameListPageState extends State<GameListPage> {
 
       if (_showCompletedGames) {
         // Filter to show only completed games
-        games = allGames
-            .where((game) => game['status'] == 1 || game['status'] == 2)
-            .toList();
+        games = allGames.where((game) => game['status'] == 1 || game['status'] == 2).toList();
       } else {
-        // Show all games
-        games = allGames;
+        // Show only ongoing games
+        games = allGames.where((game) => game['status'] == 3).toList();
       }
     });
   }
@@ -131,12 +134,13 @@ class _GameListPageState extends State<GameListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BattleShips',
-        style: TextStyle(
-          fontSize: 30, // Increase font size
-          fontWeight: FontWeight.bold, // Make text bold
-          color: Color.fromARGB(255, 23, 136, 115), // Set text color
-        ),
+        title: const Text(
+          'BattleShips',
+          style: TextStyle(
+            fontSize: 30, // Increase font size
+            fontWeight: FontWeight.bold, // Make text bold
+            color: Color.fromARGB(255, 23, 136, 115), // Set text color
+          ),
         ),
         actions: <Widget>[
           IconButton(
@@ -150,8 +154,7 @@ class _GameListPageState extends State<GameListPage> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             const DrawerHeader(
-              child:
-                  Text('Game Options', style: TextStyle(color: Colors.white)),
+              child: Text('Game Options', style: TextStyle(color: Colors.white)),
               decoration: BoxDecoration(color: Colors.blue),
             ),
             ListTile(
@@ -197,7 +200,8 @@ class _GameListPageState extends State<GameListPage> {
             child: ListTile(
               title: Text('Game ID: ${game["id"]}'),
               subtitle: Text(
-                  '${game["player1"] ?? "Unknown"}${game["player2"] != null ? ' vs ${game["player2"]}' : ''}'),
+                '${game["player1"] ?? "Unknown"}${game["player2"] != null ? ' vs ${game["player2"]}' : ''}',
+              ),
               trailing: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[Text(status)],
